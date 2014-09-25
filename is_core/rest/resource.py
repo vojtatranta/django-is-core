@@ -393,20 +393,18 @@ class RestModelResource(RestResource, RestCoreResourceMixin, BaseModelResource):
     def get_guest_fields(self, request):
         return self.core.get_rest_guest_fields(request)
 
-    @classmethod
-    def _web_links(cls, obj, request):
+    def _web_links(self, obj, request):
         web_links = {}
-        for pattern in cls.core.web_link_patterns(request):
+        for pattern in self.core.web_link_patterns(request):
             if pattern.send_in_rest:
                 url = pattern.get_url_string(request, obj=obj)
                 if url:
                     web_links[pattern.name] = url
         return web_links
 
-    @classmethod
-    def _rest_links(cls, obj, request):
+    def _rest_links(self, obj, request):
         rest_links = {}
-        for pattern in cls.core.resource_patterns.values():
+        for pattern in self.core.resource_patterns.values():
             if pattern.send_in_rest:
                 url = pattern.get_url_string(request, obj=obj)
                 if url:
@@ -415,21 +413,18 @@ class RestModelResource(RestResource, RestCoreResourceMixin, BaseModelResource):
                         rest_links[pattern.name] = {'url': url, 'methods': allowed_methods}
         return rest_links
 
-    @classmethod
-    def _default_action(cls, obj, request):
-        return cls.core.get_default_action(request, obj=obj)
+    def _default_action(self, obj, request):
+        return self.core.get_default_action(request, obj=obj)
 
-    @classmethod
-    def _actions(cls, obj, request):
-        ac = cls.core.get_list_actions(request, obj)
+    def _actions(self, obj, request):
+        ac = self.core.get_list_actions(request, obj)
         return ac
 
-    @classmethod
-    def _class_names(cls, obj, request):
-        return cls.core.get_rest_obj_class_names(request, obj)
+    def _class_names(self, obj, request):
+        return self.core.get_rest_obj_class_names(request, obj)
 
-    def get_queryset(self, request):
-        return self.core.get_queryset(request)
+    def get_queryset(self):
+        return self.core.get_queryset(self.request)
 
     def _filter_queryset(self, request, qs):
         filter_terms = request.GET.dict()
@@ -455,7 +450,7 @@ class RestModelResource(RestResource, RestCoreResourceMixin, BaseModelResource):
             raise RestException(_('Cannot resolve X-Order value "%s" into field') % order_field)
 
     def read(self, request, pk=None, **kwargs):
-        qs = self.get_queryset(request)
+        qs = self.get_queryset()
         if pk:
             try:
                 return qs.get(pk=pk)
@@ -512,7 +507,7 @@ class RestModelResource(RestResource, RestCoreResourceMixin, BaseModelResource):
         inst = None
         if self.model._meta.pk.name in data.keys():
             try:
-                inst = self.get_queryset(request).get(pk=data.get(self.model._meta.pk.name))
+                inst = self.get_queryset().get(pk=data.get(self.model._meta.pk.name))
             except ObjectDoesNotExist:
                 if self.model.objects.filter(pk=data.get(self.model._meta.pk.name)).exists():
                     raise ConflictException
@@ -610,7 +605,7 @@ class RestModelResource(RestResource, RestCoreResourceMixin, BaseModelResource):
             return RestErrorResponse(ex.message)
 
     def delete(self, request, pk, **kwargs):
-        qs = self.get_queryset(request)
+        qs = self.get_queryset()
 
         try:
             inst = qs.get(pk=pk)

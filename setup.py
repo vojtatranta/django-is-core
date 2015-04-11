@@ -31,7 +31,6 @@ setup(
         'django>=1.6',
         'django-class-based-auth-views>=0.2',
         'django-piston==1.1.13',
-        'germanium>=0.2.4',
         'django-block-snippets==0.0.11',
         'django-chamber>=0.0.9',
         'python-dateutil>=2.2',
